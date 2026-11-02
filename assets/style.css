@@ -437,3 +437,69 @@ svg.fig .d1 { animation-delay: .5s; } svg.fig .d2 { animation-delay: 1s; } svg.f
 code { font-family: Consolas, "Courier New", monospace; background: var(--soft); padding: 1px 6px; border-radius: 6px; color: var(--tin); font-weight: 700; }
 .sh-title { flex: 1; min-width: 200px; }
 .subj-head .stats { margin-left: 0; }
+
+/* ===================== GỢI Ý & BÀI TẬP TƯƠNG TÁC ===================== */
+.hint-wrap { margin: 12px 0 4px; }
+.hint-btn { background: color-mix(in srgb, var(--amber) 16%, transparent); color: var(--ink); border: 1.5px dashed var(--amber); }
+.hint-box { margin-top: 8px; padding: 10px 14px; border-radius: 12px; background: color-mix(in srgb, var(--amber) 10%, var(--card)); border-left: 4px solid var(--amber); animation: rise .25s ease; font-size: .95rem; }
+.hint-box p { margin: 4px 0; } .hint-box ol, .hint-box ul { margin: 4px 0; padding-left: 1.3em; }
+.how { padding: 8px 12px; border-radius: 10px; background: color-mix(in srgb, var(--amber) 9%, transparent); font-size: .93rem; }
+.why-list { list-style: none; padding: 0; margin: 4px 0 8px; display: flex; flex-direction: column; gap: 5px; }
+.why-list li { padding: 6px 10px; border-radius: 9px; background: var(--card); border: 1px solid var(--line); font-size: .92rem; }
+.why-list li.is-ok { border-color: var(--ok); background: var(--ok-bg); }
+.why-list b { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--soft); margin-right: 4px; font-size: .8rem; }
+.qitems { margin: 4px 0 12px; padding: 0; list-style: none; counter-reset: qi; display: flex; flex-direction: column; gap: 6px; }
+.qitems > li { counter-increment: qi; padding: 7px 12px 7px 40px; position: relative; background: var(--paper); border-radius: 10px; border: 1px solid var(--line); line-height: 1.9; overflow-x: auto; }
+.qitems > li::before { content: counter(qi) ")"; position: absolute; left: 12px; top: 7px; font-weight: 800; color: var(--c, var(--toan)); }
+.bank { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--soft); margin: 6px 0 10px; }
+.bank-lab { width: 100%; font-size: .82rem; color: var(--muted); font-weight: 600; }
+.chipw { border: 1.5px solid var(--c, var(--anh)); color: var(--c, var(--anh)); background: var(--card); border-radius: 999px; padding: 3px 12px; cursor: pointer; font-weight: 700; font-size: .88rem; }
+.chipw:hover { background: var(--c, var(--anh)); color: #fff; }
+.fill-list, .build-list { margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: 10px; }
+.fill-list > li, .build-list > li { padding-left: 4px; }
+.fill-q { line-height: 2.1; }
+.fill-in { font: inherit; font-weight: 700; color: var(--c, var(--anh)); border: none; border-bottom: 2px dashed var(--c, var(--anh)); background: color-mix(in srgb, var(--c, var(--anh)) 7%, transparent); width: 11em; max-width: 60vw; padding: 1px 6px; border-radius: 6px 6px 0 0; }
+.fill-in:focus { outline: none; border-bottom-style: solid; background: color-mix(in srgb, var(--c, var(--anh)) 14%, transparent); }
+.fill-in.ok { border-bottom-color: var(--ok); color: var(--ok); background: var(--ok-bg); }
+.fill-in.no { border-bottom-color: var(--bad); color: var(--bad); background: var(--bad-bg); }
+.clue { display: block; color: var(--muted); margin-top: 2px; }
+.fb { margin-top: 4px; font-size: .88rem; padding: 5px 10px; border-radius: 8px; }
+.fb.good { background: var(--ok-bg); color: var(--ok); } .fb.bad { background: var(--bad-bg); color: var(--bad); }
+.build-q { font-style: italic; }
+.build-line { min-height: 44px; border: 2px dashed var(--line); border-radius: 12px; padding: 6px; margin: 6px 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.build-line:empty::before { content: "Bấm các ô từ bên dưới theo đúng thứ tự…"; color: var(--muted); font-size: .85rem; padding-left: 4px; }
+.build-line.ok { border-color: var(--ok); background: var(--ok-bg); } .build-line.no { border-color: var(--bad); background: var(--bad-bg); }
+.tiles { display: flex; flex-wrap: wrap; gap: 6px; }
+.tile { border: 1.5px solid var(--line); background: var(--card); border-radius: 9px; padding: 4px 10px; cursor: pointer; font-weight: 600; box-shadow: 0 2px 0 var(--line); transition: transform .1s; }
+.tile:hover { transform: translateY(-2px); border-color: var(--c, var(--anh)); }
+.build-line .tile { background: color-mix(in srgb, var(--c, var(--anh)) 12%, var(--card)); border-color: var(--c, var(--anh)); }
+.toast { margin-top: 10px; padding: 8px 12px; border-radius: 10px; font-weight: 700; animation: pop .3s ease; }
+.toast.good { background: var(--ok-bg); color: var(--ok); } .toast.mid { background: color-mix(in srgb, var(--amber) 14%, transparent); color: var(--amber); }
+
+/* ===================== VĂN BẢN ĐỌC HIỂU ===================== */
+.texts { display: flex; flex-direction: column; gap: 16px; padding-block: 12px 48px; }
+.muted-src { color: var(--muted); font-size: .85rem; margin: 0 0 6px; font-style: italic; }
+.sec-h { margin: 16px 0 6px; font-size: .82rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.guide p { margin: 6px 0; }
+.legend-hl { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; }
+.hl { border-radius: 5px; padding: 0 4px; font-weight: 600; }
+mark.hl { color: inherit; cursor: pointer; }
+.hl-me { background: rgba(255, 120, 150, .3); } .hl-con { background: rgba(80, 160, 255, .3); } .hl-xh { background: rgba(160, 160, 160, .35); }
+.hl-nt { background: rgba(255, 190, 50, .38); } .hl-tv { background: rgba(80, 200, 120, .32); } .hl-tm { background: rgba(170, 110, 255, .3); }
+.reading { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; line-height: 1.95; max-height: 520px; overflow: auto; }
+.reading p { margin: 0 0 8px; text-indent: 1.5em; }
+.note-pop { display: inline-block; margin: 0 4px; padding: 2px 8px; border-radius: 8px; background: var(--ink); color: var(--card); font-size: .82rem; text-indent: 0; animation: pop .25s ease; }
+.paste-box { border: 2px dashed var(--line); border-radius: 12px; padding: 12px; }
+.paste-box p { margin: 0 0 8px; font-size: .92rem; }
+.paste-in { width: 100%; font: inherit; border: 1px solid var(--line); border-radius: 10px; padding: 8px; background: var(--card); color: var(--ink); margin-bottom: 8px; }
+.marks { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.marks li { font-size: .93rem; }
+.linkbtn { border: none; background: none; color: var(--bad); text-decoration: underline; cursor: pointer; font: inherit; font-size: .85rem; }
+.step-guide { counter-reset: sg; list-style: none; padding: 0; margin: 6px 0; }
+.step-guide li { counter-increment: sg; padding: 4px 0 4px 30px; position: relative; }
+.step-guide li::before { content: counter(sg); position: absolute; left: 0; top: 4px; width: 22px; height: 22px; border-radius: 50%; background: var(--amber); color: #fff; font-size: .78rem; font-weight: 800; display: grid; place-items: center; }
+
+.qitems.alpha > li::before { content: counter(qi, lower-alpha) ")"; }
+.qitems.plain > li { padding-left: 12px; } .qitems.plain > li::before { content: none; }
+.fill-list { list-style: none; padding-left: 0; }
+.note-pop { animation: none; }

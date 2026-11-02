@@ -10,6 +10,19 @@
   const RM = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const app = document.getElementById('app');
 
+  /* Gắn gợi ý cách làm (hints.js) vào từng câu / bài */
+  Object.entries(QZ.hints || {}).forEach(([sid, arr]) => {
+    const S = QZ.subjects[sid]; if (!S) return;
+    arr.forEach((h, i) => { const q = S.questions[i]; if (!q || h == null) return; if (typeof h === 'string') q.hint = h; else { q.hint = h.h; q.why = h.why; } });
+  });
+  Object.entries(QZ.essayHints || {}).forEach(([sid, arr]) => {
+    const S = QZ.subjects[sid]; if (!S || !S.essays) return;
+    arr.forEach((h, i) => { if (S.essays[i] && h && !S.essays[i].hint) S.essays[i].hint = h; });
+  });
+  const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const norm = (s) => String(s).toLowerCase().replace(/[’‘]/g, "'").replace(/\s*([,.?!…])\s*/g, '$1 ').replace(/\.\.\.|…/g, ' ').replace(/[.!?,\s]+$/g, '').replace(/\s+/g, ' ').trim();
+  const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+
   /* ---------- Icon môn học (vẽ tay bằng SVG) ---------- */
   const ICONS = {
     toan: '<svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 34 L34 34 M6 34 L22 8"/><path d="M14 34 A8 8 0 0 0 11.5 26"/><path d="M27 12 h8 M31 8 v8"/></svg>',
@@ -242,6 +255,8 @@
       body = `<div class="scope" style="--c:var(--${sid})">${S.scope.map(sec => `<section><h3>${sec.h}</h3><ul>${sec.items.map(li => `<li>${fmt(li)}</li>`).join('')}</ul>${sec.tip ? `<div class="tip">${fmt(sec.tip)}</div>` : ''}</section>`).join('')}</div>`;
     } else if (v.tab === 'essay') {
       body = essayView(sid);
+    } else if (v.tab === 'text' && S.texts) {
+      body = textView(sid);
     } else {
       body = `<div class="layout">${sidebar(sid)}<div id="qhost"></div></div>`;
     }
@@ -256,6 +271,7 @@
         <div class="tabs" role="tablist">
           <button class="tab" role="tab" aria-selected="${v.tab === 'quiz'}" data-tab="quiz">📝 Trắc nghiệm <span class="count">${st.total}</span></button>
           <button class="tab" role="tab" aria-selected="${v.tab === 'essay'}" data-tab="essay">✍️ Tự luận <span class="count">${st.eTotal}</span></button>
+          ${S.texts ? `<button class="tab" role="tab" aria-selected="${v.tab === 'text'}" data-tab="text">📖 Văn bản</button>` : ''}
           <button class="tab" role="tab" aria-selected="${v.tab === 'scope'}" data-tab="scope">📌 Phạm vi ôn tập</button>
         </div>
         ${body}
@@ -270,6 +286,7 @@
     bindTheme();
     if (v.tab === 'quiz') { bindSidebar(sid); renderQuestion(sid); }
     if (v.tab === 'essay') bindEssays(sid);
+    if (v.tab === 'text') bindTexts(sid);
     renderPill();
   }
 
@@ -279,38 +296,176 @@
   }
 
   /* ---------- Tự luận ---------- */
+  function essayBody(e, i, active) {
+    let h = `<div class="qtext">${fmt(e.q)}</div>`;
+    if (e.kind === 'fill') {
+      if (e.bank !== false) {
+        const words = shuffle([...new Set(e.items.map(it => it.a[0]))]);
+        h += `<div class="bank"><span class="bank-lab">🧺 Ngân hàng đáp án (đã xáo trộn) – bấm vào ô trống rồi chọn từ:</span>${words.map(w => `<button class="chipw" data-w="${esc(w)}">${w}</button>`).join('')}</div>`;
+      }
+      h += `<ol class="fill-list">${e.items.map((it, k) => `<li data-k="${k}"><div class="fill-q">${fmt(it.q.replace(/_{3,}|\.{3,}/, `<input class="fill-in" data-k="${k}" aria-label="Đáp án câu ${k + 1}" autocomplete="off" spellcheck="false">`))}</div>${it.clue ? `<small class="clue">🔑 ${fmt(it.clue)}</small>` : ''}<div class="fb" hidden></div></li>`).join('')}</ol>
+        <div class="essay-actions"><button class="btn primary chk">✅ Kiểm tra</button><button class="btn show-all" ${active ? 'disabled' : ''}>👀 Xem đáp án</button><button class="btn retry">↺ Làm lại</button></div>`;
+      return h;
+    }
+    if (e.kind === 'build') {
+      h += `<ol class="build-list">${e.items.map((it, k) => {
+        const tiles = shuffle(it.a.replace(/[.?!]$/, '').split(/\s+/));
+        return `<li data-k="${k}"><div class="build-q">${fmt(it.q)}</div>${it.clue ? `<small class="clue">🔑 ${fmt(it.clue)}</small>` : ''}
+          <div class="build-line" aria-label="Câu em ghép"></div>
+          <div class="tiles">${tiles.map(t => `<button class="tile">${esc(t)}</button>`).join('')}</div><div class="fb" hidden></div></li>`;
+      }).join('')}</ol>
+        <div class="essay-actions"><button class="btn primary chk">✅ Kiểm tra</button><button class="btn show-all" ${active ? 'disabled' : ''}>👀 Xem đáp án</button><button class="btn retry">↺ Xáo lại</button></div>`;
+      return h;
+    }
+    if (e.items) {
+      const st = e.ist, cls = st === 'a' ? 'qitems alpha' : st === 'none' ? 'qitems plain' : 'qitems', reset = typeof st === 'number' ? ` style="counter-reset: qi ${st - 1}"` : '';
+      h += `<ol class="${cls}"${reset}>${e.items.map(it => `<li>${fmt(it)}</li>`).join('')}</ol>`;
+    }
+    h += figWrap(e.f, e.wide);
+    return h;
+  }
+
   function essayView(sid) {
     const S = QZ.subjects[sid], v = V(sid), t = tl(sid), es = S.essays || [], active = examActive(sid);
     if (!es.length) return '<div class="qcard"><p>Môn này chưa có bài tự luận.</p></div>';
     const topics = ['Tất cả'].concat([...new Set(es.map(e => e.t))]);
     const list = es.map((e, i) => i).filter(i => v.etopic === 'Tất cả' || es[i].t === v.etopic);
     return `<div class="essay-head"><div class="filters">${topics.map(x => `<button class="filter" aria-pressed="${v.etopic === x}" data-et="${x}">${x}</button>`).join('')}</div>
-      <p class="essay-tip">${active ? '🔒 Đang thi thử: hãy làm bài ra giấy. Lời giải sẽ mở khi nộp bài hoặc hết giờ.' : '💡 Cách học: đọc đề → tự làm ra giấy → bấm <b>Xem lời giải</b> để so sánh từng bước → đánh dấu <b>Em đã làm được</b>.'}</p></div>
+      <p class="essay-tip">${active ? '🔒 Đang thi thử: hãy làm bài ra giấy. Gợi ý và lời giải sẽ mở khi nộp bài hoặc hết giờ.' : '💡 Cách học: đọc đề → bấm <b>🧭 Gợi ý cách làm</b> nếu chưa biết bắt đầu từ đâu → tự làm ra giấy → bấm <b>Xem lời giải</b> để so sánh từng bước → đánh dấu <b>Em đã làm được</b>.'}</p></div>
       <div class="essays">${list.map(i => {
-        const e = es[i], done = !!t[i];
+        const e = es[i], done = !!t[i], inter = e.kind === 'fill' || e.kind === 'build';
         return `<article class="essay ${done ? 'done' : ''}" data-i="${i}" style="animation-delay:${Math.min(list.indexOf(i), 8) * 50}ms">
-          <div class="qtop"><span class="qnum">${e.src || 'Bài ' + (i + 1)}</span><span class="chip">${e.t}</span>${e.ic ? `<span class="qtopic-icon" aria-hidden="true">${e.ic}</span>` : ''}</div>
-          <div class="qtext">${fmt(e.q)}</div>
-          ${figWrap(e.f, e.wide)}
+          <div class="qtop"><span class="qnum">${e.src || 'Bài ' + (i + 1)}</span><span class="chip">${e.t}</span>${inter ? `<span class="chip src">${e.kind === 'fill' ? '✏️ Điền đáp án' : '🧩 Ghép câu'}</span>` : ''}${e.ic ? `<span class="qtopic-icon" aria-hidden="true">${e.ic}</span>` : ''}</div>
+          ${e.hint && !active ? `<div class="hint-wrap"><button class="btn hint-btn ehint">🧭 Gợi ý cách làm</button><div class="hint-box" hidden>${fmt(e.hint)}</div></div>` : ''}
+          ${essayBody(e, i, active)}
           <div class="essay-actions">
-            <button class="btn primary reveal" ${active ? 'disabled' : ''} aria-expanded="false">${active ? '🔒 Mở sau khi nộp bài' : '💡 Xem lời giải'}</button>
+            ${inter ? '' : `<button class="btn primary reveal" ${active ? 'disabled' : ''} aria-expanded="false">${active ? '🔒 Mở sau khi nộp bài' : '💡 Xem lời giải'}</button>`}
             <label class="selfcheck"><input type="checkbox" ${done ? 'checked' : ''} ${active ? 'disabled' : ''}> <span>Em đã làm được ✓</span></label>
           </div>
-          <div class="solution" hidden><h4>Lời giải gợi ý</h4><div class="sol-body">${fmt(e.a)}</div>${e.ef ? figWrap(e.ef, e.wide) : ''}${e.tip ? `<div class="key"><b>Ghi nhớ:</b> ${fmt(e.tip)}</div>` : ''}</div>
+          ${inter ? (e.a ? `<div class="solution" hidden><h4>Ghi nhớ</h4><div class="sol-body">${fmt(e.a)}</div></div>` : '') : `<div class="solution" hidden><h4>Lời giải gợi ý</h4><div class="sol-body">${fmt(e.a)}</div>${e.ef ? figWrap(e.ef, e.wide) : ''}${e.tip ? `<div class="key"><b>Ghi nhớ:</b> ${fmt(e.tip)}</div>` : ''}</div>`}
         </article>`;
       }).join('')}</div>`;
   }
+
   function bindEssays(sid) {
-    const v = V(sid);
+    const v = V(sid), S = QZ.subjects[sid];
     app.querySelectorAll('[data-et]').forEach(b => b.onclick = () => { v.etopic = b.dataset.et; renderSubject(sid); });
     app.querySelectorAll('.essay').forEach(card => {
-      const i = +card.dataset.i, btn = card.querySelector('.reveal'), sol = card.querySelector('.solution'), cb = card.querySelector('.selfcheck input');
-      btn.onclick = () => { const open = sol.hidden; sol.hidden = !open; btn.setAttribute('aria-expanded', String(open)); btn.textContent = open ? '🙈 Ẩn lời giải' : '💡 Xem lời giải'; };
+      const i = +card.dataset.i, e = S.essays[i], sol = card.querySelector('.solution'), cb = card.querySelector('.selfcheck input');
+      const btn = card.querySelector('.reveal');
+      if (btn) btn.onclick = () => { const open = sol.hidden; sol.hidden = !open; btn.setAttribute('aria-expanded', String(open)); btn.textContent = open ? '🙈 Ẩn lời giải' : '💡 Xem lời giải'; };
+      const eh = card.querySelector('.ehint');
+      if (eh) eh.onclick = () => { const bx = eh.nextElementSibling; bx.hidden = !bx.hidden; eh.textContent = bx.hidden ? '🧭 Gợi ý cách làm' : '🙈 Ẩn gợi ý'; };
       cb.onchange = () => {
         const t = tl(sid); if (cb.checked) t[i] = 1; else delete t[i]; save(); card.classList.toggle('done', cb.checked);
         if (cb.checked) confetti(cb);
         const sb = app.querySelector('.stats'); if (sb) sb.innerHTML = statsHtml(sid);
       };
+      if (e.kind === 'fill') bindFill(card, e, sid, i);
+      if (e.kind === 'build') bindBuild(card, e, sid, i);
+    });
+  }
+
+  function markDone(card, sid, i, all) {
+    const cb = card.querySelector('.selfcheck input');
+    if (all && cb && !cb.checked && !cb.disabled) { cb.checked = true; cb.onchange(); }
+  }
+  function bindFill(card, e, sid, i) {
+    let focus = card.querySelector('.fill-in');
+    card.querySelectorAll('.fill-in').forEach(inp => { inp.onfocus = () => { focus = inp; }; inp.onkeydown = (ev) => { if (ev.key === 'Enter') card.querySelector('.chk').click(); }; });
+    card.querySelectorAll('.chipw').forEach(c => c.onclick = () => {
+      if (!focus) return; focus.value = c.dataset.w; focus.classList.remove('ok', 'no');
+      const ins = [...card.querySelectorAll('.fill-in')], nx = ins.slice(ins.indexOf(focus) + 1).find(x => !x.value); if (nx) nx.focus();
+    });
+    const check = (show) => {
+      let good = 0;
+      card.querySelectorAll('.fill-list > li').forEach(li => {
+        const k = +li.dataset.k, it = e.items[k], inp = li.querySelector('.fill-in'), fb = li.querySelector('.fb');
+        if (show) inp.value = it.a[0];
+        const ok = it.a.some(x => norm(x) === norm(inp.value));
+        if (ok) good++;
+        inp.classList.toggle('ok', ok); inp.classList.toggle('no', !ok && !!inp.value);
+        if (inp.value || show) { fb.hidden = false; fb.className = 'fb ' + (ok ? 'good' : 'bad'); fb.innerHTML = (ok ? '✔ Đúng. ' : `✘ Chưa đúng. Đáp án: <b>${it.a[0]}</b>. `) + (it.why ? fmt(it.why) : ''); }
+      });
+      return good;
+    };
+    card.querySelector('.chk').onclick = () => { const g = check(false); toast(card, g, e.items.length); if (g === e.items.length) { confetti(card.querySelector('.chk')); markDone(card, sid, i, true); } const s = card.querySelector('.solution'); if (s) s.hidden = false; };
+    card.querySelector('.show-all').onclick = () => { check(true); const s = card.querySelector('.solution'); if (s) s.hidden = false; };
+    card.querySelector('.retry').onclick = () => { card.querySelectorAll('.fill-in').forEach(x => { x.value = ''; x.classList.remove('ok', 'no'); }); card.querySelectorAll('.fb').forEach(x => { x.hidden = true; }); const tt = card.querySelector('.toast'); if (tt) tt.remove(); };
+  }
+  function bindBuild(card, e, sid, i) {
+    const wire = (li) => {
+      const line = li.querySelector('.build-line'), tiles = li.querySelector('.tiles');
+      tiles.querySelectorAll('.tile').forEach(tb => tb.onclick = () => { line.appendChild(tb); tb.onclick = () => { tiles.appendChild(tb); wire(li); }; li.querySelector('.fb').hidden = true; line.classList.remove('ok', 'no'); });
+      line.querySelectorAll('.tile').forEach(tb => tb.onclick = () => { tiles.appendChild(tb); wire(li); });
+    };
+    card.querySelectorAll('.build-list > li').forEach(wire);
+    const check = () => {
+      let good = 0;
+      card.querySelectorAll('.build-list > li').forEach(li => {
+        const it = e.items[+li.dataset.k], line = li.querySelector('.build-line'), fb = li.querySelector('.fb');
+        const got = [...line.querySelectorAll('.tile')].map(x => x.textContent).join(' ');
+        if (!got) return;
+        const ok = norm(got) === norm(it.a);
+        if (ok) good++;
+        line.classList.toggle('ok', ok); line.classList.toggle('no', !ok);
+        fb.hidden = false; fb.className = 'fb ' + (ok ? 'good' : 'bad');
+        fb.innerHTML = (ok ? '✔ Chính xác! ' : '✘ Chưa đúng, thử đổi vị trí các từ. ') + (ok && it.why ? fmt(it.why) : '');
+      });
+      return good;
+    };
+    card.querySelector('.chk').onclick = () => { const g = check(); toast(card, g, e.items.length); if (g === e.items.length) { confetti(card.querySelector('.chk')); markDone(card, sid, i, true); } };
+    card.querySelector('.show-all').onclick = () => {
+      card.querySelectorAll('.build-list > li').forEach(li => { const it = e.items[+li.dataset.k], fb = li.querySelector('.fb'); fb.hidden = false; fb.className = 'fb good'; fb.innerHTML = `Đáp án: <b>${esc(it.a)}</b>${it.why ? '<br>' + fmt(it.why) : ''}`; });
+      const s = card.querySelector('.solution'); if (s) s.hidden = false;
+    };
+    card.querySelector('.retry').onclick = () => { const body = card.querySelector('.build-list'); const tmp = document.createElement('div'); tmp.innerHTML = essayBody(e, i, false); body.replaceWith(tmp.querySelector('.build-list')); bindBuild(card, e, sid, i); const tt = card.querySelector('.toast'); if (tt) tt.remove(); };
+  }
+  function toast(card, g, n) {
+    let t = card.querySelector('.toast'); if (!t) { t = document.createElement('div'); t.className = 'toast'; card.querySelector('.essay-actions').after(t); }
+    t.className = 'toast ' + (g === n ? 'good' : 'mid');
+    t.innerHTML = g === n ? `🎉 Tuyệt vời! Em làm đúng cả ${n}/${n} câu.` : `Em đúng ${g}/${n} câu. Xem phần ✘ để sửa lại nhé!`;
+  }
+
+  /* ---------- Văn bản đọc hiểu (Ngữ văn) ---------- */
+  function textView(sid) {
+    const S = QZ.subjects[sid], T = S.texts || [];
+    let saved = {}; try { saved = JSON.parse(localStorage.getItem(KEY + '-texts') || '{}'); } catch (e) { }
+    return `<div class="texts">${T.map((tx, k) => {
+      const body = tx.body || saved[tx.id] || '';
+      return `<article class="essay text-card" data-k="${k}">
+        <div class="qtop"><span class="qnum">${tx.title}</span><span class="chip">${tx.author}</span>${tx.ic ? `<span class="qtopic-icon">${tx.ic}</span>` : ''}</div>
+        <p class="muted-src">${tx.source || ''}</p>
+        <div class="legend-hl">${(tx.legend || []).map(l => `<span class="hl hl-${l[0]}">${l[1]}</span>`).join('')}</div>
+        <div class="guide">${tx.guide}</div>
+        <h4 class="sec-h">📄 Văn bản và các chỗ cần chú ý</h4>
+        ${body ? `<div class="reading">${highlight(body, tx.marks || [])}</div><p class="note">Bấm vào chỗ được tô màu để xem ghi chú.${tx.body ? '' : ' <button class="linkbtn clear-text">Xoá văn bản đã dán</button>'}</p>`
+          : `<div class="paste-box"><p>📋 Mở tập đề cương, gõ hoặc dán toàn văn <b>${tx.title}</b> vào ô dưới (mỗi đoạn/khổ một dòng). Trang sẽ tự tô màu các chi tiết quan trọng.</p><textarea class="paste-in" rows="6" aria-label="Dán văn bản ${tx.title}"></textarea><button class="btn primary save-text">Tô màu văn bản</button></div>`}
+        <h4 class="sec-h">🔖 Các chi tiết cần chú ý (đối chiếu khi đọc)</h4>
+        <ul class="marks">${(tx.marks || []).map(m => `<li><span class="hl hl-${m.c}">${m.k}</span> ${m.n}</li>`).join('')}</ul>
+      </article>`;
+    }).join('')}</div>`;
+  }
+  function highlight(body, marks) {
+    let html = esc(body).split(/\n+/).map(p => `<p>${p}</p>`).join('');
+    marks.slice().sort((a, b) => b.k.length - a.k.length).forEach((m, idx) => {
+      const re = new RegExp(m.k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      html = html.replace(re, (x) => `<mark class="hl hl-${m.c}" tabindex="0" data-note="${esc(m.n)}">${x}</mark>`);
+    });
+    return html;
+  }
+  function bindTexts(sid) {
+    const S = QZ.subjects[sid];
+    app.querySelectorAll('.text-card').forEach(card => {
+      const tx = S.texts[+card.dataset.k];
+      const sv = card.querySelector('.save-text');
+      if (sv) sv.onclick = () => { const v = card.querySelector('.paste-in').value.trim(); if (!v) return; try { const s = JSON.parse(localStorage.getItem(KEY + '-texts') || '{}'); s[tx.id] = v; localStorage.setItem(KEY + '-texts', JSON.stringify(s)); } catch (e) { tx.body = v; } renderSubject(sid); };
+      const cl = card.querySelector('.clear-text');
+      if (cl) cl.onclick = () => { try { const s = JSON.parse(localStorage.getItem(KEY + '-texts') || '{}'); delete s[tx.id]; localStorage.setItem(KEY + '-texts', JSON.stringify(s)); } catch (e) { } renderSubject(sid); };
+      card.querySelectorAll('mark.hl').forEach(mk => {
+        const show = () => { card.querySelectorAll('.note-pop').forEach(x => x.remove()); const p = document.createElement('span'); p.className = 'note-pop'; p.textContent = mk.dataset.note; mk.after(p); };
+        mk.onclick = show; mk.onkeydown = (ev) => { if (ev.key === 'Enter') show(); };
+      });
     });
   }
 
@@ -400,6 +555,7 @@
         return `<button class="opt ${c}" data-k="${k}" ${reveal ? 'disabled' : ''}><span class="L">${LETTERS[k]}</span><span class="T">${fmt(o)}</span>${q.say ? `<span class="say" role="button" tabindex="0" data-say="${String(o).replace(/<[^>]+>/g, '').replace(/"/g, '')}" aria-label="Nghe phát âm">🔊</span>` : ''}</button>`;
       }).join('')}</div>`;
     }
+    if (q.hint && !reveal && !active) h += `<div class="hint-wrap"><button class="btn hint-btn" id="hintBtn">🧭 Gợi ý cách làm</button><div class="hint-box" id="hintBox" hidden>${fmt(q.hint)}</div></div>`;
     if (reveal) h += explainBox(q, rec);
     else if (active && rec && (rec.done || rec.tf)) h += `<div class="exam-note">📌 Đã ghi nhận lựa chọn. Em vẫn có thể đổi đáp án trước khi nộp bài.</div>`;
     h += `<div class="qnav"><button class="btn" id="prevBtn" ${pos <= 0 ? 'disabled' : ''}>← Câu trước</button><span class="hint-kb">Phím A–D để chọn, ← → để chuyển câu</span><button class="btn primary" id="nextBtn" ${pos >= list.length - 1 ? 'disabled' : ''}>Câu tiếp →</button></div></article>`;
@@ -430,6 +586,8 @@
       refreshPalette(sid); renderQuestion(sid);
       if (all && !active && r.ok) confetti(host.querySelector('.tf'));
     });
+    const hb = document.getElementById('hintBtn');
+    if (hb) hb.onclick = () => { const bx = document.getElementById('hintBox'); bx.hidden = !bx.hidden; hb.textContent = bx.hidden ? '🧭 Gợi ý cách làm' : '🙈 Ẩn gợi ý'; };
     const lb = document.getElementById('listenBtn'); if (lb) lb.onclick = () => speak(q.listen);
     const rp = host.querySelector('.replay'); if (rp) rp.onclick = () => { const fb = host.querySelector('.explain .figbox'); if (fb) fb.innerHTML = fig(q.ef); };
     document.getElementById('prevBtn').onclick = () => { if (pos > 0) { v.idx = list[pos - 1]; refreshPalette(sid); renderQuestion(sid); } };
@@ -443,8 +601,10 @@
     else verdict = ok ? 'Chính xác!' : `Chưa đúng. Đáp án đúng là ${LETTERS[q.a]}.`;
     return `<div class="explain ${ok ? 'ok' : 'bad'}">
       <div class="verdict">${ok ? '✔' : '✘'} ${verdict}</div>
+      ${q.hint ? `<h4>🧭 Cách làm</h4><div class="how">${fmt(q.hint)}</div>` : ''}
       <h4>Lời giải</h4>
       <div>${fmt(q.e)}</div>
+      ${q.why ? `<h4>🔎 Vì sao chọn / loại từng phương án</h4><ul class="why-list">${q.why.map((w, k) => `<li class="${k === q.a ? 'is-ok' : ''}"><b>${LETTERS[k]}</b> ${k === q.a ? '✔' : '✘'} ${fmt(w)}</li>`).join('')}</ul>` : ''}
       ${q.ef ? `<h4>Hình minh hoạ ${q.efAnim ? '· mô phỏng động' : ''} <button class="replay">↻ Chạy lại</button></h4>${figWrap(q.ef, q.wide)}${q.efCap ? `<div class="figcap">${q.efCap}</div>` : ''}` : ''}
       ${q.tip ? `<div class="key"><b>Ghi nhớ:</b> ${fmt(q.tip)}</div>` : ''}
     </div>`;

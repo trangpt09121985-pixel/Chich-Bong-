@@ -13,7 +13,13 @@ Dashboard ôn tập trực tuyến cho học sinh lớp 7, soạn theo "Nội du
 | Công nghệ 7 | 25 | Trồng trọt · Đất trồng & làm đất · Gieo trồng & chăm sóc · Thu hoạch · Nhân giống |
 | Tin học 7 | 20 | Làm quen bảng tính · Công thức · Hàm SUM, AVERAGE, MAX, MIN |
 
-Tính năng mới (bản 3):
+Tính năng mới (bản 4):
+- **🧭 Gợi ý cách làm** cho cả 280 câu trắc nghiệm và 73 bài tự luận: bấm để xem hướng suy nghĩ trước khi chọn đáp án; sau khi trả lời, lời giải hiện kèm "Cách làm".
+- **Tiếng Anh**: mỗi câu trắc nghiệm có bảng "Vì sao chọn / loại từng phương án". Phần tự luận thành bài tập tương tác: điền từ (có ngân hàng đáp án xáo trộn, kiểm tra từng câu) và ghép câu từ các ô từ xáo trộn.
+- **Toán**: đề tự luận tách mỗi ý một dòng, có gợi ý các bước trước khi xem lời giải.
+- **Ngữ văn**: tab **📖 Văn bản** với bố cục, câu hỏi định hướng khi đọc, bảng màu các chi tiết cần chú ý. Học sinh dán toàn văn từ tập đề cương vào trang, các chi tiết sẽ được tô màu, bấm vào để xem ghi chú. Các câu tự luận có khung gợi mở: Đề hỏi gì? · Tìm ở đâu? · Khung trả lời.
+
+Tính năng bản 3:
 - Tab **✍️ Tự luận** cho cả 8 môn (73 bài): đề bài theo đề cương, lời giải trình bày theo từng bước đánh số, ô 🎯 đáp số, ô 🧠 mẹo nhớ, đoạn văn mẫu (Ngữ văn), bảng kết quả Excel (Tin học); học sinh tự chấm bằng ô "Em đã làm được".
 - **⏱ Thi thử có đồng hồ đếm ngược**: Toán, Ngữ văn 90 phút · Tiếng Anh 60 phút · các môn còn lại 45 phút. Trong lúc thi, đáp án và lời giải được ẩn, có thể tạm dừng; khi bấm "Nộp bài" hoặc hết giờ sẽ hiện điểm quy đổi và mở lời giải. Đồng hồ vẫn chạy đúng nếu tải lại trang.
 - Hiệu ứng vui: linh vật chú cú chớp mắt, biểu tượng bay lơ lửng, pháo giấy và "+1 ⭐" khi trả lời đúng, chuỗi 🔥 câu đúng liên tiếp, rung nhẹ khi trả lời sai (tự tắt nếu máy bật chế độ giảm chuyển động).
@@ -62,6 +68,8 @@ data/gdcd.js        Câu hỏi GDCD
 data/cn.js          Câu hỏi Công nghệ
 data/tin.js         Câu hỏi Tin học
 data/tl-*.js        Bài tự luận và lời giải (tl-toan, tl-van, tl-anh, tl-khtn, tl-mon-khac)
+data/van-vanban.js  Văn bản đọc hiểu Ngữ văn: hướng dẫn đọc, chi tiết tô màu, gợi mở tự luận
+data/hints.js       Gợi ý cách làm cho từng câu trắc nghiệm và bài tự luận
 ```
 
 ## Thêm hoặc sửa câu hỏi
@@ -89,6 +97,14 @@ Mở file trong `data/`, mỗi câu là một khối:
 Mở file `data/tl-….js`, mỗi bài là một khối `{ t: 'nhóm', src: 'Câu 1', ic: '📝', q: 'đề bài', a: 'lời giải HTML' }`. Trong lời giải có thể dùng `<ol class="steps">` (các bước đánh số), `<div class="ans">` (đáp số), `<div class="memo">` (mẹo nhớ), `<div class="model">` (đoạn văn mẫu).
 
 Muốn đổi thời gian thi thử: sửa dòng `const MINUTES = { toan: 90, van: 90, anh: 60 };` trong `assets/app.js` (môn không có trong danh sách mặc định 45 phút).
+
+## Toàn văn Ngữ văn
+
+Trang không chép sẵn toàn văn "Vé xem xiếc" và "Em nghĩ về Trái Đất" vì đây là tác phẩm còn bản quyền. Có hai cách hiển thị toàn văn:
+1. Học sinh dán văn bản ngay trên tab 📖 Văn bản (văn bản chỉ lưu trên máy của em).
+2. Nếu nhà trường được phép sử dụng, thầy cô dán toàn văn vào trường `body: ``…`` ` trong `data/van-vanban.js` (mỗi đoạn hoặc khổ thơ một dòng); trang sẽ hiển thị và tô màu cho mọi học sinh.
+
+Khi thêm hoặc bớt câu trắc nghiệm, nhớ thêm hoặc bớt gợi ý tương ứng trong `data/hints.js` (cùng thứ tự).
 
 ## Ghi chú nội dung
 
