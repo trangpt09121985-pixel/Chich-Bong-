@@ -13,6 +13,11 @@ Dashboard ôn tập trực tuyến cho học sinh lớp 7, soạn theo "Nội du
 | Công nghệ 7 | 25 | Trồng trọt · Đất trồng & làm đất · Gieo trồng & chăm sóc · Thu hoạch · Nhân giống |
 | Tin học 7 | 20 | Làm quen bảng tính · Công thức · Hàm SUM, AVERAGE, MAX, MIN |
 
+Tính năng mới (bản 3):
+- Tab **✍️ Tự luận** cho cả 8 môn (73 bài): đề bài theo đề cương, lời giải trình bày theo từng bước đánh số, ô 🎯 đáp số, ô 🧠 mẹo nhớ, đoạn văn mẫu (Ngữ văn), bảng kết quả Excel (Tin học); học sinh tự chấm bằng ô "Em đã làm được".
+- **⏱ Thi thử có đồng hồ đếm ngược**: Toán, Ngữ văn 90 phút · Tiếng Anh 60 phút · các môn còn lại 45 phút. Trong lúc thi, đáp án và lời giải được ẩn, có thể tạm dừng; khi bấm "Nộp bài" hoặc hết giờ sẽ hiện điểm quy đổi và mở lời giải. Đồng hồ vẫn chạy đúng nếu tải lại trang.
+- Hiệu ứng vui: linh vật chú cú chớp mắt, biểu tượng bay lơ lửng, pháo giấy và "+1 ⭐" khi trả lời đúng, chuỗi 🔥 câu đúng liên tiếp, rung nhẹ khi trả lời sai (tự tắt nếu máy bật chế độ giảm chuyển động).
+
 Tính năng:
 - Mỗi môn có tab **Phạm vi ôn tập** (tóm tắt đề cương) và **Luyện trắc nghiệm**.
 - Chọn đáp án → hiện ngay đúng/sai và **lời giải chi tiết**, kèm hình vẽ, bảng, sơ đồ hoặc **mô phỏng động** (góc so le/đồng vị nhấp nháy, xe chạy trên đồ thị s–t, electron quay quanh hạt nhân, sóng âm lan từ đàn guitar đến tai, camera bắn tốc độ…).
@@ -56,6 +61,7 @@ data/lsdl.js        Câu hỏi Lịch sử & Địa lí
 data/gdcd.js        Câu hỏi GDCD
 data/cn.js          Câu hỏi Công nghệ
 data/tin.js         Câu hỏi Tin học
+data/tl-*.js        Bài tự luận và lời giải (tl-toan, tl-van, tl-anh, tl-khtn, tl-mon-khac)
 ```
 
 ## Thêm hoặc sửa câu hỏi
@@ -78,6 +84,12 @@ Mở file trong `data/`, mỗi câu là một khối:
 - Câu nghe Tiếng Anh: thêm `listen: 'đoạn văn tiếng Anh'`; thêm `say: true` để có nút 🔊 ở từng phương án.
 - Các loại hình có sẵn trong `assets/figures.js`: `parallel`, `numberLine`, `protractor`, `rays`, `triangle`, `sets`, `stGraph`, `atom`, `sound`, `speedCam`, `photo`, `trip`, `match`, `signs`, `voyages`, `timeline`, `pyramid`, `seasons`, `sheet`, `sentence`, `flow`, `table`, `html`.
 
+## Thêm bài tự luận
+
+Mở file `data/tl-….js`, mỗi bài là một khối `{ t: 'nhóm', src: 'Câu 1', ic: '📝', q: 'đề bài', a: 'lời giải HTML' }`. Trong lời giải có thể dùng `<ol class="steps">` (các bước đánh số), `<div class="ans">` (đáp số), `<div class="memo">` (mẹo nhớ), `<div class="model">` (đoạn văn mẫu).
+
+Muốn đổi thời gian thi thử: sửa dòng `const MINUTES = { toan: 90, van: 90, anh: 60 };` trong `assets/app.js` (môn không có trong danh sách mặc định 45 phút).
+
 ## Ghi chú nội dung
 
 - Toán, Câu 3 (đề cương): bản in ghi phương án D là −13/29, không có trong dãy số; câu đã được chỉnh để có đáp án −15/29.
@@ -87,4 +99,7 @@ Mở file trong `data/`, mỗi câu là một khối:
 - Công nghệ: câu 9, 10, 14 trong bản đề cương có đánh dấu khoanh tròn khác với đáp án theo SGK (đáp án đúng: 9-B kĩ sư bảo vệ thực vật, 10-A Cày → Bừa → Lên luống, 14-A tháng 11 đến tháng 4 năm sau). Câu 15 (mục đích cày đất) có 3 phương án cùng đúng nên đã chuyển sang dạng "không phải".
 - Tin học: đề cương là bài thực hành Excel; trang chuyển thành câu hỏi về công thức, hàm và kết quả tính. Cột "Còn lại" (Câu 3) chưa ghi rõ có cộng phụ cấp hay không, câu hỏi đã nêu rõ quy ước.
 - Lịch sử & Địa lí: sơ đồ hành trình phát kiến địa lí là hình giản lược, không theo tỉ lệ; học sinh xem lược đồ Hình 1 trong đề cương khi làm tự luận.
+- Toán tự luận: bản in mất dấu ngoặc ở Bài 2 ý 4, 11 và Đề mẫu Câu 2c; Bài 8 ý 6 in trùng "6√5 và 6√5" (hiểu là 5√6 và 6√5); Bài 15 ý b, c phụ thuộc vị trí số 1, 2 trên hình in. Lời giải đều ghi chú cách hiểu.
+- Tiếng Anh, Revision 1 câu IV.8: bản in ghi năm 1916; Hội Chữ thập đỏ Việt Nam thành lập năm 1946.
+- Địa lí Câu 1 (EU): lời giải không ghi số liệu GDP cụ thể; học sinh lấy số liệu trong SGK Bài 4.
 - Giáo viên nên rà soát lại đáp án trước khi gửi học sinh.
