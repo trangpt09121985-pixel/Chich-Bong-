@@ -503,3 +503,10 @@ mark.hl { color: inherit; cursor: pointer; }
 .qitems.plain > li { padding-left: 12px; } .qitems.plain > li::before { content: none; }
 .fill-list { list-style: none; padding-left: 0; }
 .note-pop { animation: none; }
+
+.listen-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+.listen-row .listen { margin-bottom: 0; }
+.listen.ghost-l { border-style: dashed; }
+.listen-count { font-size: .85rem; color: var(--muted); font-weight: 600; }
+.script { background: var(--paper); border: 1px dashed var(--line); border-radius: 10px; padding: 8px 12px; }
+.script p { margin: 3px 0; }

@@ -6,7 +6,7 @@ Dashboard ôn tập trực tuyến cho học sinh lớp 7, soạn theo "Nội du
 |---|---|---|
 | Toán 7 | 52 | Số hữu tỉ · Số thực · Góc & song song · Toán thực tế |
 | Ngữ văn 7 | 32 | Đọc hiểu truyện · Thơ 4–5 chữ · Tiếng Việt · Viết |
-| Tiếng Anh 7 | 60 | Phát âm · Ngữ pháp & từ vựng · Đọc hiểu · Nghe · Viết câu |
+| Tiếng Anh 7 | 100 (gồm 40 câu Phiếu 4) | Phát âm · Ngữ pháp & từ vựng · Đọc hiểu · Nghe · Viết câu |
 | KHTN 7 | 39 | Kĩ năng học KHTN · Tốc độ & âm thanh · Nguyên tử · Vật sống |
 | Lịch sử & Địa lí 7 | 38 | Tây Âu trung đại · Phát kiến & Phục hưng · Trung Quốc · Đô thị · Châu Âu · Châu Á |
 | GDCD 7 | 14 | Truyền thống quê hương · Quan tâm, chia sẻ · Học tập tự giác |
@@ -107,6 +107,8 @@ Trang không chép sẵn toàn văn "Vé xem xiếc" và "Em nghĩ về Trái Đ
 Khi thêm hoặc bớt câu trắc nghiệm, nhớ thêm hoặc bớt gợi ý tương ứng trong `data/hints.js` (cùng thứ tự).
 
 ## Ghi chú nội dung
+
+- Tiếng Anh – Phiếu 4: phần nghe (câu 37–40) không kèm file âm thanh trong phiếu; lời thoại do trang soạn để khớp với các phương án, máy đọc bằng hai giọng (nam/nữ nếu trình duyệt có). Đáp án nghe theo lời thoại tự soạn, không phải theo băng gốc. Câu 12 và 16 giống nhau, câu 9 và 15 cùng đề nhưng khác phương án.
 
 - Toán, Câu 3 (đề cương): bản in ghi phương án D là −13/29, không có trong dãy số; câu đã được chỉnh để có đáp án −15/29.
 - Toán, Câu 19 (đề cương): phương án A gốc (M₁ = N₄, cặp so le ngoài) cũng suy ra x // y; đã thay phương án A, D để chỉ còn một đáp án đúng.

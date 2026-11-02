@@ -16,6 +16,7 @@ window.QZ = window.QZ || { subjects: {} };
       { h: 'Language focus', items: ['Present simple + Past simple: review.', 'Verbs of liking / disliking + V-ing: like, love, enjoy, hate, detest, fancy, be fond of, be keen on, be interested in…', 'Simple sentences (câu đơn: một mệnh đề S + V).'],
         tip: 'Hiện tại đơn: thói quen, sự thật, lịch trình (The flight <b>departs</b> at 3 p.m.). Quá khứ đơn: việc đã xong, có mốc thời gian quá khứ (last summer, yesterday, in 1946).' },
       { h: 'Skills', items: ['Reading: thông tin cụ thể về sở thích, lượng calo, người trẻ làm việc cộng đồng.', 'Listening: sở thích, vấn đề sức khoẻ và lời khuyên, công việc tình nguyện của học sinh.'] },
+      { h: 'Phiếu 4 (Practice 4)', items: ['40 câu: phát âm (1–6), từ vựng – ngữ pháp (7–16), giao tiếp (17–18), điền từ vào đoạn văn (19–23), đọc hiểu (24–29), điền câu vào đoạn (30–33), biển báo – tin nhắn (34–36), nghe (37–40).', 'Chọn chủ đề <b>Phiếu 4</b> trong tab Trắc nghiệm để làm riêng phiếu này.'], tip: 'Phần nghe: phiếu không kèm file âm thanh, lời thoại được soạn khớp với các phương án và đọc bằng giọng máy; được bấm nghe 2 lần như khi thi.' },
       { h: 'Types of exercises', items: ['Phonetics: underlined words, stress pattern.', 'Language focus: multiple choice, find and correct mistakes, word forms / tenses.', 'Reading: gap fill, comprehension (closest / opposite meaning, main idea, details).', 'Writing: rewrite sentences, complete sentences.', 'Listening: listen and circle the correct answer.'] }
     ],
     questions: [

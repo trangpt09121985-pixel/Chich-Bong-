@@ -79,12 +79,21 @@
   function speak(text) {
     try {
       if (!('speechSynthesis' in window)) return;
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(String(text).replace(/\(.*?\)/g, ''));
-      u.lang = 'en-US'; u.rate = 0.88;
-      const v = window.speechSynthesis.getVoices().find(v => /en(-|_)(US|GB)/i.test(v.lang));
-      if (v) u.voice = v;
-      window.speechSynthesis.speak(u);
+      const synth = window.speechSynthesis; synth.cancel();
+      const voices = synth.getVoices().filter(v => /^en(-|_)/i.test(v.lang));
+      const pick = (re) => voices.find(v => re.test(v.name)) || null;
+      const female = pick(/female|samantha|zira|susan|karen|moira|tessa|google us english|aria|jenny/i) || voices[0] || null;
+      const male = pick(/(^|\W)male|daniel|david|alex|fred|guy|google uk english male|mark|george/i) || voices[1] || voices[0] || null;
+      const lines = Array.isArray(text) ? text : [['', text]];
+      lines.forEach(([who, t], k) => {
+        const u = new SpeechSynthesisUtterance(String(t).replace(/\(.*?\)/g, ''));
+        u.lang = 'en-US'; u.rate = 0.85;
+        if (who === 'M') { if (male) u.voice = male; u.pitch = 0.8; }
+        else if (who === 'W') { if (female) u.voice = female; u.pitch = 1.2; }
+        else if (female) u.voice = female;
+        synth.speak(u);
+        if (Array.isArray(text) && k < lines.length - 1) { const gap = new SpeechSynthesisUtterance(' '); gap.volume = 0; synth.speak(gap); }
+      });
     } catch (e) { /* bỏ qua */ }
   }
 
@@ -533,7 +542,7 @@
       <div class="qtop"><span class="qnum">Câu ${i + 1}</span><span class="chip">${q.t}</span>${q.src ? `<span class="chip src">${q.src}</span>` : ''}${!active && streak >= 2 ? `<span class="chip streak">🔥 ${streak} câu đúng liên tiếp</span>` : ''}${q.ic ? `<span class="qtopic-icon" aria-hidden="true">${q.ic}</span>` : ''}</div>`;
     if (q.passage) h += `<div class="passage">${fmt(q.passage)}</div>`;
     h += `<div class="qtext">${fmt(q.q)}</div>`;
-    if (q.listen) h += `<button class="listen" id="listenBtn">▶ Nghe đoạn hội thoại</button>`;
+    if (q.listen) h += `<div class="listen-row"><button class="listen" id="listenBtn">▶ Nghe đoạn hội thoại</button><button class="listen ghost-l" id="stopBtn">■ Dừng</button><span class="listen-count" id="listenCount">${Array.isArray(q.listen) ? '🎧 Được nghe 2 lần' : ''}</span></div>`;
     h += figWrap(q.f, q.wide);
     if (q.type === 'tf') {
       h += `<div class="tf">${q.s.map((st, k) => {
@@ -588,7 +597,9 @@
     });
     const hb = document.getElementById('hintBtn');
     if (hb) hb.onclick = () => { const bx = document.getElementById('hintBox'); bx.hidden = !bx.hidden; hb.textContent = bx.hidden ? '🧭 Gợi ý cách làm' : '🙈 Ẩn gợi ý'; };
-    const lb = document.getElementById('listenBtn'); if (lb) lb.onclick = () => speak(q.listen);
+    const lb = document.getElementById('listenBtn');
+    if (lb) { let n = 0; lb.onclick = () => { n++; speak(q.listen); const c = document.getElementById('listenCount'); if (c && Array.isArray(q.listen)) c.textContent = n >= 2 ? '🎧 Đã nghe ' + n + ' lần' : '🎧 Lần nghe thứ ' + n + ' / 2'; }; }
+    const sb = document.getElementById('stopBtn'); if (sb) sb.onclick = () => { try { window.speechSynthesis.cancel(); } catch (e) { } };
     const rp = host.querySelector('.replay'); if (rp) rp.onclick = () => { const fb = host.querySelector('.explain .figbox'); if (fb) fb.innerHTML = fig(q.ef); };
     document.getElementById('prevBtn').onclick = () => { if (pos > 0) { v.idx = list[pos - 1]; refreshPalette(sid); renderQuestion(sid); } };
     document.getElementById('nextBtn').onclick = () => { if (pos < list.length - 1) { v.idx = list[pos + 1]; refreshPalette(sid); renderQuestion(sid); } };
